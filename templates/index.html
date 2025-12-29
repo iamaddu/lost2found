@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="text-center py-16 md:py-24">
+    <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+        Lost it? <span class="text-brand-navy">We'll find</span> <span class="text-brand-green">it.</span>
+    </h1>
+    <p class="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-medium">
+        The world's most advanced recovery network using AI vision to match lost items with finders instantly.
+    </p>
+
+    <div class="flex flex-wrap justify-center gap-5">
+        <a href="/report/lost"
+            class="btn-navy px-10 py-5 rounded-2xl font-bold flex items-center gap-3 text-lg shadow-xl shadow-blue-900/10 no-underline">
+            <i data-lucide="search" class="w-6 h-6"></i> Report Lost Item
+        </a>
+        <a href="/report/found"
+            class="bg-white border-2 border-slate-200 text-slate-700 px-10 py-5 rounded-2xl font-bold hover:border-brand-green hover:text-brand-green transition-all flex items-center gap-3 text-lg no-underline">
+            <i data-lucide="plus-circle" class="w-6 h-6"></i> I Found Something
+        </a>
+    </div>
+</div>
+
+<div class="grid md:grid-cols-3 gap-8 mt-12">
+    <div
+        class="bg-white p-8 rounded-[2rem] border border-slate-100 custom-shadow hover:translate-y-[-5px] transition-transform">
+        <div class="w-12 h-12 bg-indigo-50 flex items-center justify-center rounded-2xl mb-6">
+            <i data-lucide="shield-check" class="text-brand-navy w-6 h-6"></i>
+        </div>
+        <h3 class="font-bold text-xl mb-3">Secure Verification</h3>
+        <p class="text-slate-500 leading-relaxed">Encrypted ownership checks ensure items only return to their rightful
+            owners.</p>
+    </div>
+    <div
+        class="bg-white p-8 rounded-[2rem] border border-slate-100 custom-shadow hover:translate-y-[-5px] transition-transform">
+        <div class="w-12 h-12 bg-green-50 flex items-center justify-center rounded-2xl mb-6">
+            <i data-lucide="cpu" class="text-brand-green w-6 h-6"></i>
+        </div>
+        <h3 class="font-bold text-xl mb-3">Neural Sync</h3>
+        <p class="text-slate-500 leading-relaxed">Our proprietary AI compares visual signatures to identify matches
+            across the globe.</p>
+    </div>
+    <div
+        class="bg-white p-8 rounded-[2rem] border border-slate-100 custom-shadow hover:translate-y-[-5px] transition-transform">
+        <div class="w-12 h-12 bg-slate-50 flex items-center justify-center rounded-2xl mb-6">
+            <i data-lucide="map" class="text-slate-700 w-6 h-6"></i>
+        </div>
+        <h3 class="font-bold text-xl mb-3">Smart Geo-Fencing</h3>
+        <p class="text-slate-500 leading-relaxed">Instantly alerts local authorities and transit hubs the moment a match
+            is detected.</p>
+    </div>
+</div>
+{% endblock %}

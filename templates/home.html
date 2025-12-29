@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-6">
+    <div class="text-center py-16 md:py-24">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight text-slate-900">
+            Lost it? <span class="text-[#00509E]">We'll find</span> <span class="text-[#78BE20]">it.</span>
+        </h1>
+        <p class="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-medium">
+            The world's most advanced recovery network using AI vision to match lost items with finders instantly.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-5">
+            <a href="/report_lost"
+                class="bg-[#00509E] text-white hover:bg-[#004080] transition-all px-10 py-5 rounded-2xl font-bold flex items-center gap-3 text-lg shadow-xl shadow-[#00509E]/20">
+                <i data-lucide="search" class="w-6 h-6"></i> Report Lost Item
+            </a>
+
+            <a href="/report_found"
+                class="bg-white border-2 border-slate-200 text-slate-700 px-10 py-5 rounded-2xl font-bold hover:border-[#78BE20] hover:text-[#78BE20] transition-all flex items-center gap-3 text-lg">
+                <i data-lucide="plus-circle" class="w-6 h-6"></i> I Found Something
+            </a>
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 mb-20">
+        <div
+            class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-transform duration-300">
+            <div class="w-12 h-12 bg-[#00509E]/10 flex items-center justify-center rounded-2xl mb-6">
+                <i data-lucide="shield-check" class="text-[#00509E] w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl mb-3 text-slate-800">Secure Verification</h3>
+            <p class="text-slate-500 leading-relaxed">Encrypted ownership checks ensure items only return to their
+                rightful owners.</p>
+        </div>
+
+        <div
+            class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-transform duration-300">
+            <div class="w-12 h-12 bg-[#78BE20]/10 flex items-center justify-center rounded-2xl mb-6">
+                <i data-lucide="cpu" class="text-[#78BE20] w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl mb-3 text-slate-800">Neural Sync</h3>
+            <p class="text-slate-500 leading-relaxed">Our proprietary AI compares visual signatures to identify matches
+                across the globe.</p>
+        </div>
+
+        <div
+            class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-transform duration-300">
+            <div class="w-12 h-12 bg-slate-100 flex items-center justify-center rounded-2xl mb-6">
+                <i data-lucide="map" class="text-slate-700 w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-xl mb-3 text-slate-800">Smart Geo-Fencing</h3>
+            <p class="text-slate-500 leading-relaxed">Instantly alerts local authorities and transit hubs the moment a
+                match is detected.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

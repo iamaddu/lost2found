@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto py-12 px-6 relative z-10">
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-[#00509E]/10 rounded-2xl mb-4">
+            <i data-lucide="search" class="text-[#00509E] w-8 h-8 animate-pulse"></i>
+        </div>
+        <h2 class="text-4xl font-black text-slate-900 tracking-tight">Report Lost Item</h2>
+        <p class="text-slate-500 font-medium mt-2">Our AI will scan the database for matching signatures.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data"
+        class="glass-card p-10 rounded-[2.5rem] shadow-2xl shadow-[#00509E]/10 border border-white/50 space-y-8">
+
+        <div>
+            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Item Name</label>
+            <input type="text" name="name" placeholder="e.g. BMW Car Keys" required
+                class="w-full p-5 bg-white/50 rounded-2xl font-bold text-slate-700 outline-none border border-slate-200 focus:border-[#00509E] focus:ring-4 focus:ring-[#00509E]/5 transition-all">
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div>
+                <label
+                    class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Category</label>
+                <div class="relative">
+                    <select name="category"
+                        class="w-full p-5 bg-white/50 rounded-2xl font-bold text-slate-700 outline-none border border-slate-200 focus:border-[#00509E] transition-all appearance-none cursor-pointer">
+                        <option value="Electronics">Electronics</option>
+                        <option value="Bag">Bag</option>
+                        <option value="ID/Wallet">ID/Wallet</option>
+                        <option value="Personal Items">Personal Items</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <i data-lucide="chevron-down"
+                        class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Date
+                    Lost</label>
+                <input type="date" name="date" required
+                    class="w-full p-5 bg-white/50 rounded-2xl font-bold text-slate-700 outline-none border border-slate-200 focus:border-[#00509E] transition-all">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Location
+                Lost</label>
+            <div class="relative">
+                <i data-lucide="navigation" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                <input type="text" name="location" placeholder="e.g. RVU Library, Block A" required
+                    class="w-full p-5 pl-12 bg-white/50 rounded-2xl font-bold text-slate-700 outline-none border border-slate-200 focus:border-[#00509E] transition-all">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Reference Image
+                (Optional)</label>
+
+            <div
+                class="relative border-2 border-dashed border-slate-200 rounded-[2rem] p-10 text-center hover:border-[#00509E]/50 hover:bg-[#00509E]/5 transition-all group overflow-hidden">
+                <input type="file" name="image" id="fileInputLost" accept="image/*"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+                <div id="uploadPlaceholderLost" class="transition-all duration-300">
+                    <div
+                        class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#00509E]/10 group-hover:scale-110 transition-all">
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400 group-hover:text-[#00509E]"></i>
+                    </div>
+                    <p class="text-base font-bold text-slate-600 group-hover:text-[#00509E]">Upload reference photo</p>
+                    <p class="text-xs text-slate-400 font-medium mt-1 uppercase tracking-tighter">Helps AI
+                        cross-reference matches</p>
+                </div>
+
+                <div id="uploadSuccessLost" class="hidden animate-in fade-in zoom-in duration-300">
+                    <div class="w-16 h-16 bg-[#00509E]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-[#00509E]"></i>
+                    </div>
+                    <p class="text-base font-bold text-[#00509E]" id="fileNameLost">File Selected</p>
+                    <p class="text-xs text-[#00509E]/60 font-medium mt-1 uppercase tracking-widest">Image ready for
+                        Neural Sync</p>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit"
+            class="w-full py-5 bg-[#00509E] text-white rounded-[1.5rem] font-black text-lg hover:bg-[#004080] transition-all shadow-xl shadow-[#00509E]/20 active:scale-[0.98] flex items-center justify-center gap-3">
+            <i data-lucide="radar" class="w-5 h-5"></i>
+            Search & Report
+        </button>
+    </form>
+</div>
+
+<script>
+    const fileInputLost = document.getElementById('fileInputLost');
+    const uploadPlaceholderLost = document.getElementById('uploadPlaceholderLost');
+    const uploadSuccessLost = document.getElementById('uploadSuccessLost');
+    const fileNameLost = document.getElementById('fileNameLost');
+
+    fileInputLost.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            uploadPlaceholderLost.classList.add('hidden');
+            uploadSuccessLost.classList.remove('hidden');
+            fileNameLost.textContent = this.files[0].name;
+        }
+    });
+</script>
+{% endblock %}

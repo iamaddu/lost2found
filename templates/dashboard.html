@@ -1,0 +1,205 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto py-12 px-6 space-y-20 relative z-10">
+
+    <section>
+        <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 bg-[#00509E]/10 rounded-xl flex items-center justify-center">
+                        <i data-lucide="search" class="text-[#00509E] w-6 h-6"></i>
+                    </div>
+                    <h1 class="text-4xl font-black text-slate-900 tracking-tight">My Lost Items</h1>
+                </div>
+                <p class="text-slate-500 font-medium ml-13">Track the neural matching status of your reported items.</p>
+            </div>
+            <a href="/report_lost"
+                class="bg-[#00509E] text-white px-8 py-4 rounded-2xl font-black hover:bg-[#004080] transition-all shadow-xl shadow-[#00509E]/20 flex items-center gap-2 group">
+                <i data-lucide="plus-circle" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
+                Report Lost
+            </a>
+        </div>
+
+        <div class="glass-card rounded-[2.5rem] border border-white/50 shadow-2xl overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-200/50">
+                        <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Item Details
+                        </th>
+                        <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date Reported
+                        </th>
+                        <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Live Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100/50">
+                    {% for item in items %}
+                    <tr class="hover:bg-white/40 transition-colors group">
+                        <td class="p-6">
+                            <div class="flex items-center gap-4">
+                                {% if item.image_path %}
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-0 bg-[#00509E] blur-lg opacity-0 group-hover:opacity-20 transition duration-500 rounded-full">
+                                    </div>
+                                    <img src="{{ url_for('uploaded_file', filename=item.image_path) }}"
+                                        class="relative w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm">
+                                </div>
+                                {% else %}
+                                <div
+                                    class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200">
+                                    <i data-lucide="image-off" class="w-5 h-5"></i>
+                                </div>
+                                {% endif %}
+                                <span class="font-bold text-slate-800 text-lg">{{ item.item_name }}</span>
+                            </div>
+                        </td>
+                        <td class="p-6 text-slate-500 font-bold text-sm">{{ item.date_lost }}</td>
+                        <td class="p-6">
+                            {% if item.status == 'searching' %}
+                            <div class="flex flex-col gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center w-fit gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span> Searching
+                                    </span>
+                                    <a href="{{ url_for('check_matches', lost_id=item.id) }}"
+                                        class="bg-[#00509E]/10 text-[#00509E] px-4 py-2 rounded-xl text-xs font-black hover:bg-[#00509E] hover:text-white transition-all">
+                                        Re-Scan
+                                    </a>
+                                </div>
+                                {% if item.rejection_reason %}
+                                <div class="bg-red-50 border border-red-100 p-3 rounded-xl max-w-xs">
+                                    <span
+                                        class="text-red-500 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 mb-1">
+                                        <i data-lucide="alert-circle" class="w-3 h-3"></i> Admin Note
+                                    </span>
+                                    <p class="text-xs text-red-800 font-bold">"{{ item.rejection_reason }}"</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% elif item.status == 'potential_match' %}
+                            <div class="flex flex-col gap-2">
+                                <span
+                                    class="bg-[#00509E] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center w-fit gap-2 animate-pulse">
+                                    <i data-lucide="sparkles" class="w-4 h-4"></i> Match Found!
+                                </span>
+                                <a href="{{ url_for('check_matches', lost_id=item.id) }}"
+                                    class="text-[#00509E] text-xs font-black hover:underline ml-1">
+                                    Review AI Matches &rarr;
+                                </a>
+                            </div>
+                            {% elif item.status == 'pending_approval' %}
+                            <span
+                                class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center w-fit gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce"></span> Verification
+                                Pending
+                            </span>
+                            {% elif item.status == 'returned' %}
+                            <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl max-w-xs">
+                                <span
+                                    class="text-emerald-700 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-2">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i> Ready for Pickup
+                                </span>
+                                <p class="text-xs text-emerald-900 font-bold leading-relaxed">
+                                    Collect from <span class="underline">Admin Office, Floor 1.</span>
+                                </p>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="p-16 text-center">
+                            <p class="text-slate-400 font-bold">No lost items reported yet.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section>
+        <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 bg-[#78BE20]/10 rounded-xl flex items-center justify-center">
+                        <i data-lucide="package-check" class="text-[#78BE20] w-6 h-6"></i>
+                    </div>
+                    <h1 class="text-4xl font-black text-slate-900 tracking-tight">Items I Found</h1>
+                </div>
+                <p class="text-slate-500 font-medium ml-13">Thank you for helping the recovery network grow!</p>
+            </div>
+            <a href="/report_found"
+                class="bg-[#78BE20] text-white px-8 py-4 rounded-2xl font-black hover:bg-[#66a31b] transition-all shadow-xl shadow-[#78BE20]/20 flex items-center gap-2 group">
+                <i data-lucide="plus-circle" class="w-5 h-5 group-hover:rotate-90 transition-transform"></i>
+                Report Found
+            </a>
+        </div>
+
+        <div class="glass-card rounded-[2.5rem] border border-white/50 shadow-2xl overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-200/50">
+                        <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Found Item</th>
+                        <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date Found</th>
+                        <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Next Steps</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100/50">
+                    {% for item in found_items %}
+                    <tr class="hover:bg-white/40 transition-colors group">
+                        <td class="p-6">
+                            <div class="flex items-center gap-4">
+                                {% if item.image_path %}
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-0 bg-[#78BE20] blur-lg opacity-0 group-hover:opacity-20 transition duration-500 rounded-full">
+                                    </div>
+                                    <img src="{{ url_for('uploaded_file', filename=item.image_path) }}"
+                                        class="relative w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm">
+                                </div>
+                                {% else %}
+                                <div
+                                    class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200">
+                                    <i data-lucide="image-off" class="w-5 h-5"></i>
+                                </div>
+                                {% endif %}
+                                <span class="font-bold text-slate-800 text-lg">{{ item.item_name }}</span>
+                            </div>
+                        </td>
+                        <td class="p-6 text-slate-500 font-bold text-sm">{{ item.date_found }}</td>
+                        <td class="p-6">
+                            {% if item.status == 'available' %}
+                            <div class="bg-[#78BE20]/5 border border-[#78BE20]/20 p-4 rounded-2xl max-w-sm">
+                                <span
+                                    class="text-[#78BE20] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 mb-2">
+                                    <i data-lucide="truck" class="w-4 h-4"></i> Drop-off Needed
+                                </span>
+                                <p class="text-xs text-slate-700 font-bold leading-relaxed">
+                                    Please hand this over to the <br>
+                                    <span class="text-[#78BE20] underline">Admin Office (Block A)</span>.
+                                </p>
+                            </div>
+                            {% else %}
+                            <span
+                                class="bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                Successfully Processed
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="p-16 text-center text-slate-400 font-bold">No found items reported yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

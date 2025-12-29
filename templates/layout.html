@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='logo.jpg') }}">
+    <title>Lost2Found</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans selection:bg-[#78BE20] selection:text-white">
+
+    <nav class="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="relative">
+                    <div
+                        class="absolute inset-0 bg-[#78BE20] blur-lg opacity-20 group-hover:opacity-40 transition duration-500 rounded-full">
+                    </div>
+                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Lost2Found Logo"
+                        class="relative w-22 h-12 object-contain rounded-xl transform group-hover:scale-105 transition duration-300 drop-shadow-sm">
+                </div>
+
+                <div class="flex flex-col justify-center">
+                    <span class="text-2xl font-[900] tracking-tighter text-[#00509E] leading-none">
+                        Lost2<span class="text-[#78BE20]">Found</span>
+                    </span>
+                    <span
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1 group-hover:text-[#00509E] transition-colors">
+                        AI Recovery Network
+                    </span>
+                </div>
+            </a>
+
+            <div class="flex items-center gap-8">
+                <div class="hidden md:flex items-center gap-6 text-sm font-bold text-slate-500">
+                    <a href="/" class="hover:text-[#00509E] transition-colors py-2 relative group">
+                        Home
+                        <span
+                            class="absolute bottom-0 left-0 w-0 h-0.5 bg-[#78BE20] transition-all group-hover:w-full"></span>
+                    </a>
+                    <a href="/browse" class="hover:text-[#00509E] transition-colors py-2 relative group">
+                        Browse Found
+                        <span
+                            class="absolute bottom-0 left-0 w-0 h-0.5 bg-[#78BE20] transition-all group-hover:w-full"></span>
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-4 pl-6 border-l border-slate-200">
+                    {% if session.user %}
+                    {% if session.is_admin %}
+                    <a href="/admin"
+                        class="text-rose-600 hover:text-rose-700 font-bold text-xs uppercase tracking-wider border border-rose-200 bg-rose-50 px-3 py-1.5 rounded-lg hover:bg-rose-100 transition">
+                        Admin Panel
+                    </a>
+                    {% endif %}
+
+                    <a href="/dashboard"
+                        class="flex items-center gap-2 bg-slate-100 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-200 pr-4 pl-2 py-1.5 rounded-full transition-all duration-300 group">
+                        <div
+                            class="w-8 h-8 rounded-full bg-[#00509E] text-white flex items-center justify-center font-bold text-xs shadow-sm group-hover:bg-[#004080]">
+                            {{ session.user[0]|upper }}
+                        </div>
+                        <div class="flex flex-col items-start">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase leading-none">Logged in
+                                as</span>
+                            <span
+                                class="text-xs font-bold text-slate-700 leading-none mt-0.5 group-hover:text-[#00509E]">
+                                {{ session.user.split('@')[0] }}
+                            </span>
+                        </div>
+                    </a>
+
+                    <a href="/logout"
+                        class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        title="Logout">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </a>
+
+                    {% else %}
+                    <a href="/login"
+                        class="bg-[#00509E] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#004080] hover:shadow-lg hover:shadow-[#00509E]/20 transition-all transform hover:-translate-y-0.5">
+                        Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="fixed top-24 right-6 z-40 max-w-sm w-full space-y-2 pointer-events-none">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div
+            class="bg-white/90 backdrop-blur-md border-l-4 border-[#00509E] text-[#00509E] p-4 rounded-xl shadow-2xl animate-in slide-in-from-right-10 pointer-events-auto flex items-center gap-3">
+            <i data-lucide="info" class="w-5 h-5 text-[#00509E]"></i>
+            <span class="font-bold text-sm">{{ message }}</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-400 text-sm font-bold">
+                &copy; 2025 Lost2Found <span class="text-slate-300 mx-2">|</span> AI Recovery Network
+            </p>
+            <div class="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition duration-500">
+                <i data-lucide="github" class="w-5 h-5"></i>
+                <i data-lucide="twitter" class="w-5 h-5"></i>
+                <i data-lucide="linkedin" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </footer>
+
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>
