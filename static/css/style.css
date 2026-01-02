@@ -5,6 +5,8 @@
     /* Green */
     --bg: #f8fafc;
     --text: #1e293b;
+    --gray-light: #e2e8f0;
+    --gray-dark: #64748b;
 }
 
 body {
@@ -12,15 +14,22 @@ body {
     background-color: var(--bg);
     margin: 0;
     color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
 }
 
-/* NAVBAR */
+/* ===========================
+   NAVBAR
+   =========================== */
 .navbar {
     background: white;
     padding: 1rem 5%;
     display: flex;
     justify-content: center;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--gray-light);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .nav-container {
@@ -49,8 +58,14 @@ body {
 
 .nav-links a {
     text-decoration: none;
-    color: #64748b;
+    color: var(--gray-dark);
     font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
 }
 
 .btn-login {
@@ -61,15 +76,19 @@ body {
     border: none;
     cursor: pointer;
     font-weight: 700;
-    transition: 0.3s;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
 }
 
 .btn-login:hover {
     background: #151b60;
     box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+    transform: translateY(-1px);
 }
 
-/* HERO SECTION */
+/* ===========================
+   HERO SECTION
+   =========================== */
 .hero-section {
     text-align: center;
     padding: 80px 20px 40px;
@@ -82,6 +101,7 @@ body {
     font-weight: 800;
     line-height: 1.2;
     margin-bottom: 1rem;
+    color: var(--text);
 }
 
 .highlight {
@@ -89,24 +109,30 @@ body {
 }
 
 .hero-section p {
-    font-size: 1.1rem;
-    color: #64748b;
+    font-size: 1.125rem;
+    color: var(--gray-dark);
     margin-bottom: 2.5rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .hero-actions {
     display: flex;
     justify-content: center;
     gap: 20px;
+    flex-wrap: wrap;
+    /* Allows buttons to stack on small screens */
 }
 
 .btn-hero {
-    padding: 18px 32px;
+    padding: 16px 32px;
     border-radius: 12px;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.2s ease;
+    min-width: 160px;
 }
 
 .btn-hero:hover {
@@ -117,58 +143,85 @@ body {
     background: var(--primary);
     color: white;
     border: none;
+    box-shadow: 0 4px 15px rgba(26, 35, 126, 0.2);
 }
 
 .btn-white {
     background: white;
-    color: #333;
+    color: var(--text);
     border: 1px solid #cbd5e1;
 }
 
-/* LIVE REGISTRY */
+.btn-white:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* ===========================
+   LIVE REGISTRY (GRID)
+   =========================== */
 .registry-container {
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 60px auto;
     padding: 0 20px;
+}
+
+.registry-header {
+    text-align: center;
+    margin-bottom: 40px;
 }
 
 .registry-header h2 {
     font-size: 2rem;
     color: var(--primary);
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    font-weight: 800;
 }
 
 .registry-header p {
-    color: #64748b;
-    margin-bottom: 30px;
+    color: var(--gray-dark);
+    font-size: 1rem;
 }
 
 .registry-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
+    padding-bottom: 40px;
 }
 
 .registry-card {
     background: white;
     padding: 25px;
     border-radius: 24px;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
-    position: relative;
-    transition: transform 0.3s ease;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .registry-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    border-color: #eef2f6;
 }
 
-/* Badges */
+/* Badges & Text */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+}
+
 .badge {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 800;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 8px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .badge-found {
@@ -182,52 +235,66 @@ body {
 }
 
 .time-ago {
-    float: right;
     font-size: 0.8rem;
     color: #94a3b8;
-    margin-top: 4px;
+    font-weight: 500;
 }
 
 .card-title {
-    font-size: 1.2rem;
-    margin: 20px 0 10px;
+    font-size: 1.25rem;
+    margin: 0 0 10px 0;
     font-weight: 700;
+    color: var(--text);
 }
 
 .card-loc {
-    color: #64748b;
+    color: var(--gray-dark);
     font-size: 0.9rem;
     margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btn-inspect {
     width: 100%;
     padding: 12px;
     background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--gray-light);
     border-radius: 12px;
     font-weight: 600;
+    color: var(--gray-dark);
     cursor: pointer;
+    transition: all 0.2s;
+    margin-top: auto;
+    /* Pushes button to bottom */
 }
 
 .btn-inspect:hover {
     background: #f1f5f9;
+    color: var(--primary);
+    border-color: #cbd5e1;
 }
 
-/* MODALS */
+/* ===========================
+   MODALS & FORMS
+   =========================== */
 .modal-overlay {
     display: none;
-    /* Hidden by default */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 9999;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+    /* Prevents edge touching on mobile */
+    box-sizing: border-box;
 }
 
 .auth-card {
@@ -235,11 +302,12 @@ body {
     padding: 40px;
     border-radius: 32px;
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #f1f5f9;
     position: relative;
     text-align: center;
-    animation: popIn 0.3s ease;
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes popIn {
@@ -257,26 +325,41 @@ body {
 .auth-title {
     font-size: 1.8rem;
     color: var(--primary);
-    margin-bottom: 5px;
+    margin: 0 0 10px 0;
+    font-weight: 800;
 }
 
 .auth-sub {
-    color: #64748b;
-    font-size: 0.9rem;
-    margin-bottom: 25px;
+    color: var(--gray-dark);
+    font-size: 0.95rem;
+    margin-bottom: 30px;
 }
 
-/* Forms */
 input,
 select {
     width: 100%;
-    padding: 14px;
-    margin-bottom: 15px;
-    background: #f1f5f9;
-    border: none;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--gray-light);
     border-radius: 12px;
     box-sizing: border-box;
     font-size: 1rem;
+    color: var(--text);
+    transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
 }
 
 .btn-full {
@@ -287,6 +370,11 @@ select {
     cursor: pointer;
     border: none;
     font-size: 1rem;
+    transition: transform 0.2s;
+}
+
+.btn-full:active {
+    transform: scale(0.98);
 }
 
 .btn-green {
@@ -294,10 +382,8 @@ select {
     color: white;
 }
 
-.row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+.btn-green:hover {
+    background: #43a047;
 }
 
 .close-btn {
@@ -309,17 +395,142 @@ select {
     font-size: 1.5rem;
     color: #cbd5e1;
     cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: var(--text);
 }
 
 .auth-footer {
-    margin-top: 20px;
+    margin-top: 25px;
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--gray-dark);
 }
 
 .auth-footer a {
     color: var(--primary);
     font-weight: 700;
     text-decoration: none;
-    cursor: pointer;
+}
+
+/* Style for the Check Button */
+.btn-mark-read {
+    background: #e2e8f0;
+    color: #4caf50;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-left: auto;
+    /* Pushes it to the right */
+    transition: 0.2s;
+}
+
+.btn-mark-read:hover {
+    background: #4caf50;
+    color: white;
+}
+
+/* Dim the card if it is read */
+.alert-card.read-message {
+    opacity: 0.6;
+    background-color: #f8fafc;
+    border-left: 4px solid #cbd5e1;
+    /* Grey border instead of Red */
+}
+
+/* ===========================
+   RESPONSIVE DESIGN (Media Queries)
+   =========================== */
+
+/* Tablet & Mobile (Max width 768px) */
+@media (max-width: 768px) {
+
+    /* Navbar Adjustment */
+    .navbar {
+        padding: 0.8rem 5%;
+    }
+
+    .nav-container {
+        flex-direction: row;
+        /* Keep logo and hamburger aligned if you add one later */
+    }
+
+    /* Hide standard nav links on mobile (Simplified for now) */
+    /* In a real app, you'd add a hamburger menu toggle here */
+    .nav-links {
+        display: none;
+        /* Hides links for cleaner mobile look */
+    }
+
+    /* Keep the Login button visible or hide it if you prefer */
+    .btn-login {
+        display: block;
+        font-size: 0.8rem;
+        padding: 8px 16px;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        padding: 40px 20px;
+    }
+
+    .hero-section h1 {
+        font-size: 2.2rem;
+        /* Smaller Font */
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        /* Stack buttons vertically */
+        gap: 12px;
+    }
+
+    .btn-hero {
+        width: 100%;
+        /* Full width buttons */
+    }
+
+    /* Registry Grid */
+    .registry-container {
+        margin: 30px auto;
+    }
+
+    .registry-grid {
+        grid-template-columns: 1fr;
+        /* 1 Column on Mobile */
+        gap: 20px;
+    }
+
+    /* Modals */
+    .auth-card {
+        padding: 30px 20px;
+        width: 100%;
+        border-radius: 24px;
+    }
+
+    .row {
+        grid-template-columns: 1fr;
+        /* Stack form inputs */
+        gap: 0;
+    }
+}
+
+/* Small Phones (Max width 480px) */
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
 }
