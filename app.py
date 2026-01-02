@@ -15,9 +15,44 @@ from flask_mail import Mail, Message
 import qrcode
 import uuid
 import os
+import threading
 
 app = Flask(__name__)
 app.secret_key = "lost2found_secret_key"
+
+# AI model for semantic similarity - loaded lazily
+model = None
+util = None  # Add global util
+tf_model = None  # TensorFlow model for image classification
+
+def get_model():
+    global model, util  # Include util in global
+    if model is None:
+        try:
+            print("Loading AI model for semantic similarity...")
+            from sentence_transformers import SentenceTransformer
+            if util is None:
+                from sentence_transformers import util
+            model = SentenceTransformer('paraphrase-MiniLM-L3-v2', cache_folder=os.path.join(os.getcwd(), 'model_cache'))
+            print("AI model loaded successfully.")
+        except Exception as e:
+            print(f"Failed to load AI model: {e}")
+            print("AI matching will be disabled.")
+            model = None  # Set to None to avoid retrying
+    return model
+
+def get_tf_model():
+    global tf_model
+    if tf_model is None:
+        try:
+            print("Loading TensorFlow MobileNet model for image classification...")
+            import tensorflow as tf
+            tf_model = tf.keras.applications.MobileNetV2(weights='imagenet')
+            print("TensorFlow model loaded successfully.")
+        except Exception as e:
+            print(f"Failed to load TensorFlow model: {e}")
+            tf_model = None
+    return tf_model
 
 # --- CONFIGURATIONS ---
 UPLOAD_FOLDER = 'static/uploads'
@@ -107,6 +142,22 @@ def compare_images(img_path1, img_path2):
     except Exception as e:
         return 0
 
+def classify_image(img_path):
+    """Classify image using TensorFlow MobileNet to suggest category."""
+    try:
+        if get_tf_model() is None:
+            return "Unknown"
+        img = Image.open(img_path).resize((224, 224)).convert('RGB')
+        img_array = np.array(img) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+        predictions = get_tf_model().predict(img_array)
+        decoded = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=1)[0]
+        label = decoded[0][1]  # e.g., 'wallet', 'backpack'
+        return label
+    except Exception as e:
+        print(f"Error classifying image: {e}")
+        return "Unknown"
+
 def calculate_similarity(lost_entry, found_item):
     text_score = fuzz.token_set_ratio(lost_entry['item_name'], found_item['item_name'])
     cat_score = 100 if lost_entry['category'] == found_item['category'] else 0
@@ -130,6 +181,7 @@ def find_matches_smart(lost_entry):
     found_pool = cursor.fetchall()
     conn.close()
     
+    print(f"Found {len(found_pool)} found items for matching.")
     matches = []
     for found in found_pool:
         score = calculate_similarity(lost_entry, found)
@@ -142,7 +194,118 @@ def find_matches_smart(lost_entry):
             found['distance_meters'] = round(distance, 0) if distance != float('inf') else None
             matches.append(found)
     matches.sort(key=lambda x: x['match_score'], reverse=True)
+    print(f"Found {len(matches)} matches.")
     return matches
+
+# --- AUTOMATIC AI MATCHING ---
+def automatic_matching(item_type, item_id):
+    """
+    Runs automatic matching for newly inserted lost or found item.
+    Uses semantic similarity on text and image similarity.
+    If combined score > 0.5, creates a claim.
+    """
+    print(f"Starting automatic matching for {item_type} item {item_id}")
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    
+    if item_type == 'lost':
+        cursor.execute("SELECT * FROM lost_items WHERE id = %s", (item_id,))
+        item = cursor.fetchone()
+        if not item: 
+            conn.close()
+            return
+        # Get potential matches from found_items
+        cursor.execute("SELECT * FROM found_items WHERE status IN ('available', 'searching')")
+        others = cursor.fetchall()
+        item_text = f"{item['item_name']} {item.get('description', '')} {item['category']} {item['location_lost']}"
+        item_email = item['user_email']
+        item_image = item.get('image_path')
+    else:
+        cursor.execute("SELECT * FROM found_items WHERE id = %s", (item_id,))
+        item = cursor.fetchone()
+        if not item: 
+            conn.close()
+            return
+        # Get potential matches from lost_items
+        cursor.execute("SELECT * FROM lost_items WHERE status = 'searching'")
+        others = cursor.fetchall()
+        item_text = f"{item['item_name']} {item.get('description', '')} {item['category']} {item['location']}"
+        item_email = item['finder_email']
+        item_image = item.get('image_path')
+    
+    if not others:
+        conn.close()
+        return
+    
+    # Encode the inserted item's text
+    if get_model() is not None:
+        item_emb = get_model().encode(item_text)
+    else:
+        item_emb = None  # Will use fuzzy fallback
+    
+    for other in others:
+        if item_type == 'lost':
+            other_text = f"{other['item_name']} {other.get('description', '')} {other['category']} {other['location']}"
+            lost_id = item['id']
+            found_id = other['id']
+            notify_email = other['finder_email']
+            notify_subject = "Potential Match Found for Your Found Item"
+            notify_body = f"A lost item '{item['item_name']}' matches your found item with high similarity. Please check your claims."
+            other_image = other.get('image_path')
+        else:
+            other_text = f"{other['item_name']} {other.get('description', '')} {other['category']} {other['location_lost']}"
+            lost_id = other['id']
+            found_id = item['id']
+            notify_email = other['user_email']
+            notify_subject = "Potential Match Found for Your Lost Item"
+            notify_body = f"A found item '{item['item_name']}' matches your lost item with high similarity. Please check your claims."
+            other_image = other.get('image_path')
+        
+        print(f"Comparing: '{item_text}' vs '{other_text}'")
+        if get_model() is not None and item_emb is not None:
+            other_emb = get_model().encode(other_text)
+            text_sim = util.cos_sim(item_emb, other_emb).item()
+        else:
+            # Fallback to fuzzy matching
+            text_sim = fuzz.token_set_ratio(item_text, other_text) / 100.0
+        
+        # Image similarity
+        image_sim = 0.0
+        print(f"Images: lost='{item_image}', found='{other_image}'")
+        if item_image and other_image:
+            item_img_path = os.path.join(app.config['UPLOAD_FOLDER'], item_image)
+            other_img_path = os.path.join(app.config['UPLOAD_FOLDER'], other_image)
+            print(f"Paths: {item_img_path} exists={os.path.exists(item_img_path)}, {other_img_path} exists={os.path.exists(other_img_path)}")
+            if os.path.exists(item_img_path) and os.path.exists(other_img_path):
+                try:
+                    image_sim = compare_images(item_img_path, other_img_path) / 100.0  # Convert to 0-1
+                    print(f"Image similarity calculated: {image_sim}")
+                except Exception as e:
+                    print(f"Error calculating image similarity: {e}")
+                    image_sim = 0.0
+        
+        # Combined score: weighted average (favor image more)
+        combined_sim = (text_sim * 0.4) + (image_sim * 0.6)
+        
+        if combined_sim > 0.4 or image_sim > 0.7:  # More lenient matching
+            print(f"AI Match found: Lost {lost_id} - Found {found_id}, Score: {combined_sim:.2f} (text: {text_sim:.2f}, image: {image_sim:.2f})")
+            # Insert into ai_matches
+            cursor.execute("INSERT INTO ai_matches (lost_item_id, found_item_id, similarity_score) VALUES (%s, %s, %s)", 
+                           (lost_id, found_id, combined_sim))
+            
+            # Create automatic claim
+            proof_desc = f"Auto-matched by AI system with combined similarity score {combined_sim:.2f} (text: {text_sim:.2f}, image: {image_sim:.2f})"
+            cursor.execute("""INSERT INTO claims (lost_item_id, found_item_id, user_email, proof_description, status, admin_status) 
+                              VALUES (%s, %s, %s, %s, 'pending', 'pending')""", 
+                           (lost_id, found_id, item_email, proof_desc))
+            
+            # Send notification
+            send_notification(notify_subject, notify_email, notify_body)
+        else:
+            print(f"No match: Lost {lost_id} - Found {found_id}, Score: {combined_sim:.2f} (text: {text_sim:.2f}, image: {image_sim:.2f})")
+    
+    conn.commit()
+    conn.close()
 
 # --- AI FRAUD DETECTION ---
 def check_fraud_probability(user_email, item_name):
@@ -206,7 +369,7 @@ def login():
                 flash("Account created! Log in.")
 
         elif action == 'login':
-            if email == "adminl2f@gmail.com" and password == "l2f":
+            if email == "harshitha@123" and password == "123":
                 session['user'] = "ADMIN"
                 session['is_admin'] = True
                 conn.close()
@@ -246,8 +409,13 @@ def dashboard():
     cursor = conn.cursor(dictionary=True)
     
     # 1. Get Current User
-    cursor.execute("SELECT id, email, name, reward_points FROM users WHERE email = %s", (session['user'],))
+    cursor.execute("SELECT id, email, name, karma FROM users WHERE email = %s", (session['user'],))
     current_user = cursor.fetchone()
+    
+    if not current_user:
+        session.clear()
+        flash("User account not found. Please login again.")
+        return redirect(url_for('login'))
 
     # 2. Lost Items
     cursor.execute("""
@@ -289,7 +457,7 @@ def dashboard():
         unread_count = 0
 
     # 6. Leaderboard
-    cursor.execute("SELECT name, reward_points FROM users ORDER BY reward_points DESC LIMIT 5")
+    cursor.execute("SELECT name, karma FROM users ORDER BY karma DESC LIMIT 5")
     leaderboard = cursor.fetchall()
 
     conn.close()
@@ -301,7 +469,7 @@ def dashboard():
                            inbox_messages=inbox_messages,
                            unread_count=unread_count,  # <-- Passed to template
                            leaderboard=leaderboard,
-                           user_points=current_user['reward_points'])
+                           user_points=current_user['karma'])
 
 @app.route('/report_lost', methods=['GET', 'POST'])
 @is_logged_in
@@ -328,6 +496,9 @@ def report_lost():
         cursor.execute(query, (name, category, location, coords, date, session['user'], description, filename))
         lost_id = cursor.lastrowid
         conn.commit()
+
+        # Start automatic matching in background thread
+        threading.Thread(target=automatic_matching, args=('lost', lost_id)).start()
 
         lost_entry = {'item_name': name, 'category': category, 'location_lost': location, 'location_coords': coords, 'image_path': filename}
         matches = find_matches_smart(lost_entry)
@@ -363,7 +534,12 @@ def report_found():
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'searching')
         """, (name, category, "Found via App", location, location_coords, date_found, session['user'], filename))
         
+        found_id = cursor.lastrowid
         conn.commit()
+
+        # Start automatic matching in background thread
+        threading.Thread(target=automatic_matching, args=('found', found_id)).start()
+
         conn.close()
 
         flash("Item reported successfully! Thanks for helping.", "success")
@@ -445,6 +621,11 @@ def chat(claim_id):
                 VALUES (%s, %s, %s, NOW())
             """, (claim_id, session['user'], msg))
             conn.commit()
+            
+            # Send notification to the other party
+            other_email = claim['finder_email'] if session['user'] == claim['user_email'] else claim['user_email']
+            send_notification("New Message in Chat", other_email, f"You have a new message regarding '{claim['item_name']}'.")
+            
             # Redirect to prevent form re-submission on refresh
             return redirect(url_for('chat', claim_id=claim_id))
     
@@ -506,7 +687,7 @@ def mark_returned(claim_id):
         user_record = cursor.fetchone()
         
         if user_record:
-            cursor.execute("UPDATE users SET reward_points = reward_points + 50 WHERE id=%s", (user_record['id'],))
+            cursor.execute("UPDATE users SET karma = karma + 50 WHERE id=%s", (user_record['id'],))
             flash("Item marked returned. Finder rewarded 50 points!", "success")
     
     conn.commit()
@@ -675,27 +856,48 @@ def check_matches(lost_id):
     matches = find_matches_smart(lost_item)
     return render_template('matches.html', matches=matches, lost_id=lost_id)
 
-# --- NEW ROUTE: TOGGLE BLOCK ---
-@app.route('/toggle_block/<int:user_id>')
-def toggle_block(user_id):
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if session.get('user') != "ADMIN": return redirect(url_for('login'))
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Delete user (cascade will handle related data if set, but assume not)
+    cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
+    conn.commit()
+    conn.close()
+    
+    flash("User deleted successfully.")
+    return redirect(url_for('admin'))
+
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
     if session.get('user') != "ADMIN": return redirect(url_for('login'))
     
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
     
-    # Get current status
-    cursor.execute("SELECT is_blocked FROM users WHERE id = %s", (user_id,))
-    user = cursor.fetchone()
-    
-    if user:
-        new_status = 0 if user['is_blocked'] else 1
-        cursor.execute("UPDATE users SET is_blocked = %s WHERE id = %s", (new_status, user_id))
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        is_blocked = 1 if request.form.get('is_blocked') else 0
+        
+        cursor.execute("UPDATE users SET name=%s, email=%s, is_blocked=%s WHERE id=%s", (name, email, is_blocked, user_id))
         conn.commit()
-        action = "Blocked" if new_status else "Unblocked"
-        flash(f"User successfully {action}.")
+        conn.close()
+        flash("User updated successfully.")
+        return redirect(url_for('admin'))
     
+    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
     conn.close()
-    return redirect(url_for('admin'))
+    
+    if not user:
+        flash("User not found.")
+        return redirect(url_for('admin'))
+    
+    return render_template('edit_user.html', user=user)
 
 # ==========================================
 # FEATURE 1: NEURAL TAGS (QR CODES)
@@ -781,7 +983,13 @@ def alert_owner(unique_code):
         """, (tag['tag_id'], tag['owner_id'], finder_contact, message))
         conn.commit()
         
-        # 3. Notify the finder
+        # 3. Send email notification to the owner
+        owner_email = cursor.execute("SELECT email FROM users WHERE id=%s", (tag['owner_id'],))
+        owner = cursor.fetchone()
+        if owner:
+            send_notification("Someone Found Your NeuralTag!", owner['email'], f"A finder has scanned your tag for '{tag['item_name']}' and left a message.")
+        
+        # 4. Notify the finder
         flash(f"Message sent to {tag['owner_name']}! They will contact you shortly.", 'success')
     else:
         flash("Tag not found.", "danger")
@@ -825,4 +1033,7 @@ def view_lost(item_id):
     return render_template('public_item.html', item=item)
 
 if __name__ == '__main__':
+    print("Preloading AI model for faster matching...")
+    get_model()  # Preload the model on startup
+    print("Model preloaded. Starting app...")
     app.run(debug=True)

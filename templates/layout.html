@@ -4,14 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
     <title>Lost2Found</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -31,8 +29,9 @@
                     <div
                         class="absolute inset-0 bg-[#78BE20] blur-lg opacity-20 group-hover:opacity-40 transition duration-500 rounded-full">
                     </div>
-                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Lost2Found Logo"
-                        class="relative w-22 h-12 object-contain rounded-xl transform group-hover:scale-105 transition duration-300 drop-shadow-sm">
+                    <div class="relative w-22 h-12 flex items-center justify-center rounded-xl transform group-hover:scale-105 transition duration-300 drop-shadow-sm bg-gradient-to-r from-[#00509E] to-[#78BE20] text-white font-bold text-lg">
+                        L&F
+                    </div>
                 </div>
 
                 <div class="flex flex-col justify-center">

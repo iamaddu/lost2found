@@ -107,7 +107,18 @@
     </div>
 </div>
 
-<script>
+<script>    // Live updates every 30 seconds
+    function refreshRegistry() {
+        fetch('/browse')
+            .then(response => response.text())
+            .then(html => {
+                // Simple refresh by reloading the page or updating content
+                location.reload();
+            })
+            .catch(err => console.error('Failed to refresh registry:', err));
+    }
+
+    setInterval(refreshRegistry, 30000); // 30 seconds
     function openModal(title, location, date, imageSrc) {
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalLocation').innerText = location;

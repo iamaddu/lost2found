@@ -33,6 +33,10 @@
         </div>
 
         <div class="space-y-3">
+            <a href="https://wa.me/?text=🚨 Help! I lost my {{ item.item_name }}. Please check if you found it: {{ url_for('view_lost', item_id=item.id, _external=True) }}"
+                class="block w-full bg-green-500 text-white py-4 rounded-xl font-black text-lg shadow-xl shadow-green-500/30 hover:bg-green-600 transition-transform active:scale-95">
+                📱 Share on WhatsApp
+            </a>
             <a href="{{ url_for('report_found') }}"
                 class="block w-full bg-[#78BE20] text-white py-4 rounded-xl font-black text-lg shadow-xl shadow-[#78BE20]/30 hover:bg-[#66a31b] transition-transform active:scale-95">
                 I Found This!
